@@ -9,8 +9,11 @@ import { google } from 'googleapis'
 
 export const helloWorld = functions.https.onRequest((request, response) => {
 
-    const spreadSheetId  = request.query.sheedId
+    console.log(request.query)
+
+    const spreadSheetId  = request.query.sheetId
     const sheet = request.query.sheet
+    const start = request.query.start
     const colEnd = request.query.colEnd
 
     google.auth.getClient({
@@ -25,7 +28,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
             .values
             .get({ 
                 spreadsheetId: spreadSheetId,
-                range: `${sheet}!A2:${colEnd}` 
+                range: `${sheet}!${start}:${colEnd}` 
             });    
 
         if (sheetVals.status < 200 || sheetVals.status > 299) {
@@ -39,3 +42,4 @@ export const helloWorld = functions.https.onRequest((request, response) => {
         })
 
 });
+
