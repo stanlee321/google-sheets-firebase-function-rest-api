@@ -34,7 +34,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
 
             return appendEntry(api, sheetId, auth, metadata).then(async _ => {
                 console.log('write to google spreadsheet is successful')
-                response.send("'write to google spreadsheet is successful'");
+                response.send("OK");
                // do something else
             })
             .catch(err => {
@@ -84,8 +84,5 @@ export const helloWorld = functions.https.onRequest((request, response) => {
                 console.log(e)
             })
     }
-   
- 
-
 });
 

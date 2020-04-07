@@ -11,7 +11,7 @@ interface Metadata {
 export const appendEntry =  (api: any, spreadsheetId: string, auth: any, metadata: Metadata) => {
     return new Promise((resolve, reject) => {
 
-        const range = `${metadata.sheetName}!A${metadata.sheetStartAt}:${metadata.sheetEndAt}`; //${metadata.er}`
+        const range = `${metadata.sheetName}!${metadata.sheetStartAt}:${metadata.sheetEndAt}`; //${metadata.er}`
 
         const payload = {
             auth: auth,
