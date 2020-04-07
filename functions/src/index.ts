@@ -1,4 +1,9 @@
 import * as functions from 'firebase-functions';
+//import * as firebase from 'firebase-admin';
+import * as admin from 'firebase-admin';
+
+admin.initializeApp(functions.config().firebase);
+
 import { google } from 'googleapis'
 
 import { appendEntry } from './append'; 
@@ -9,10 +14,10 @@ import { appendEntry } from './append';
 // const spreadsheet = functions.config().googleapis.sheets
 
 
-export const helloWorld = functions.https.onRequest((request, response) => {
 
+export const gSheetTools = functions.https.onRequest((request, response) => {
 
-    if (request.method == "POST") {
+    if (request.method === "POST") {
         console.log("POST")
 
         const sheetId  = request.body.sheedId;
@@ -49,7 +54,7 @@ export const helloWorld = functions.https.onRequest((request, response) => {
    }
 
 
-   if (request.method == "GET") {
+   if (request.method === "GET") {
         console.log("GET")
         console.log(request.query)
 
@@ -83,6 +88,35 @@ export const helloWorld = functions.https.onRequest((request, response) => {
             }).catch( (e) => {
                 console.log(e)
             })
+    }
+});
+
+
+
+export const epiTools = functions.https.onRequest( async (request, response) => {
+
+    const firestoreInstance = admin.firestore();
+
+
+    if (request.method === "POST") {
+        console.log("POST")
+
+        response.status(200).send("I am a happy POST");
+        return;
+    }
+
+
+    if (request.method === "GET") {
+            // As an admin, the app has access to read and write all data, regardless of Security Rules
+        try {
+            const doc = await firestoreInstance.collection("epi-data").doc("app-data").get()
+            console.log(doc.data)
+            response.status(200).send(doc.data);
+            return;
+        } catch (e) {
+            response.status(500).send(e)
+            console.log(e)
+        }
     }
 });
 
