@@ -108,15 +108,16 @@ export const epiTools = functions.https.onRequest( async (request, response) => 
 
     if (request.method === "GET") {
             // As an admin, the app has access to read and write all data, regardless of Security Rules
-        try {
-            const doc = await firestoreInstance.collection("epi-data").doc("app-data").get()
-            console.log(doc.data)
-            response.status(200).send(doc.data);
-            return;
-        } catch (e) {
-            response.status(500).send(e)
-            console.log(e)
-        }
+            firestoreInstance.collection("epi-data").doc("Bolivia").get().then(( doc => {
+                response.status(200).send(doc.data());
+                return;
+
+            })).catch ((e) => {
+                response.status(500).send(e)
+                console.log(e)
+                return;
+            })
+
     }
 });
 
