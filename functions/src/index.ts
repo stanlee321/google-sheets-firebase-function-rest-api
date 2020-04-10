@@ -15,6 +15,8 @@ import { appendEntry } from './append';
 
 
 
+
+
 export const gSheetTools = functions.https.onRequest((request, response) => {
 
     if (request.method === "POST") {
@@ -92,6 +94,20 @@ export const gSheetTools = functions.https.onRequest((request, response) => {
 });
 
 
+exports.onFireStoreChange = functions.firestore
+    .document("bar_codes/{emails}")
+    .onUpdate((change) => {
+        const after = change.after.data();
+        console.log(`The data is ${JSON.stringify(after)}`);
+
+    // console.log(`New message from ${bar_codeId}`);
+    // const messageData = snapshot.val();
+    // const text =  messageData.text;
+
+    // console.log(`Data is  ${ text }`);
+    return;
+});
+
 
 export const epiTools = functions.https.onRequest( async (request, response) => {
 
@@ -101,8 +117,20 @@ export const epiTools = functions.https.onRequest( async (request, response) => 
     if (request.method === "POST") {
         console.log("POST")
 
-        response.status(200).send("I am a happy POST");
-        return;
+        const data = {"144a234": {
+            "positivos": 1234,
+            "timestamp": new Date().toISOString()
+        }}
+
+        firestoreInstance.collection("epi-data").doc("Bolivia").create(data ).then( val => {
+
+            response.status(200).send(val);
+            return;
+        }).catch(e => {
+            console.log("ERROR: ", e)
+        })
+        //const data =  request.body.data
+
     }
 
 
