@@ -15,8 +15,6 @@ import { appendEntry } from './append';
 
 
 
-
-
 export const gSheetTools = functions.https.onRequest((request, response) => {
 
     if (request.method === "POST") {
@@ -117,17 +115,16 @@ export const epiTools = functions.https.onRequest( async (request, response) => 
     if (request.method === "POST") {
         console.log("POST")
 
-        const data = {"144a234": {
-            "positivos": 1234,
-            "timestamp": new Date().toISOString()
-        }}
+        console.log("DaTA: ", request.body)
 
-        firestoreInstance.collection("epi-data").doc("Bolivia").create(data ).then( val => {
+        firestoreInstance.collection("epi-data").doc("Bolivia").update( request.body ).then( val => {
 
             response.status(200).send(val);
             return;
         }).catch(e => {
             console.log("ERROR: ", e)
+            response.status(500).send(e);
+
         })
         //const data =  request.body.data
 
@@ -135,16 +132,75 @@ export const epiTools = functions.https.onRequest( async (request, response) => 
 
 
     if (request.method === "GET") {
-            // As an admin, the app has access to read and write all data, regardless of Security Rules
-            firestoreInstance.collection("epi-data").doc("Bolivia").get().then(( doc => {
-                response.status(200).send(doc.data());
-                return;
+            console.log("GET")
+            try{
+                const query = request.query
+                console.log("QUERY:", query.all)
+                const myType = typeof query.all
+                console.log(myType)
+                if (query.all === "true"){
+                    firestoreInstance.collection("epi-data").doc("Bolivia").get().then(( doc => {
+                        response.status(200).send(doc.data());
+                        return;
+        
+                    })).catch ((e) => {
+                        response.status(500).send(e)
+                        console.log(e)
+                        return;
+                    })
+                }
+                
+                if (query.last === "true"){
+                    // As an admin, the app has access to read and write all data, regardless of Security Rules
+                    firestoreInstance.collection("epi-data").doc("Bolivia").get()
+                    .then(( doc => {
+                        
+                        const myData:any = doc.data();
+                        let keys = Object.keys(myData);
 
-            })).catch ((e) => {
-                response.status(500).send(e)
+                        // const rawData: any = doc.data()
+                        keys.sort((a,b)=> Date.parse(a) -Date.parse(b));
+                        const val = keys.slice(-1)[0]
+
+                        response.status(200).send(myData[val]);
+                        
+                        return;
+
+                })).catch ((e) => {
+                    response.status(500).send(e)
+                    console.log(e)
+                    return;
+                })
+            }
+
+    
+            }catch(e ){
                 console.log(e)
+                response.status(500).send(e)
                 return;
-            })
+            }
+
+
+
+        //     if (query.all !== null){
+        //         // As an admin, the app has access to read and write all data, regardless of Security Rules
+
+        //     }
+
+
+            
+        // firestoreInstance.collection("epi-data").doc("Bolivia").get().then(( doc => {
+        //     response.status(200).send(doc.data());
+        //     return;
+
+        // })).catch ((e) => {
+        //     response.status(500).send(e)
+        //     console.log(e)
+        //     return;
+        // })
+        // response.status(200).send("HI from GET REST epiTools API ")
+        // return;
+
 
     }
 });
