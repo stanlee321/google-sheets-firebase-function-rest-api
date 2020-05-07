@@ -1,12 +1,10 @@
 # REST APIS Firebase Functions.
 
-Esta funcion de Firebase se contecta a un Google Sheet, se necesita el Link al archivo compartido de donde se extrae el `sheedId` que sirve para identificar la conexion.
-Los dos usos que se tienen son:
+Esta funcion de Firebase implementa un REST API Serverless, esta funcion tiene dos usos
 
-* Escribir al Google Sheet con el metodo POST y leer desde el Google Sheet con el metodo GET en `gSheetTools`.
+* Escribir al Google Sheet con el metodo POST y leer desde el Google Sheet con el metodo GET en `gSheetTools`. Se necesita el Link al archivo compartido de donde se extrae el `sheedId` que sirve para identificar la conexion. Cada caso de uso tiene un ejemplo lineas abajo.
+
 * Escribir y leer datos epidemiologicos a una base de datos de Firebase Cloud Storage con los metodos POST y GET en `epiTools`.
-
-Cada caso de uso tiene un ejemplo lineas abajo.
 
 
 **Todo el codigo fuente esta dentro de la carpeta `functions/src/` .**
@@ -14,7 +12,7 @@ Cada caso de uso tiene un ejemplo lineas abajo.
 ## Deploy with
 
 ```
-$firebase deploy --only functions
+$ firebase deploy --only functions
 ```
 
 ## DOCUMENTACION PARA gSheetTools
@@ -41,6 +39,45 @@ colEnd: colEnd as string
 start: startAt as string
 ```
 
+Ejemplo utilzando Python para convertir la llamada GET a un dataframe.
+
+
+```python
+
+import pandas as pd
+import requests
+import json
+
+sheetId = "1H7x4Yotph0E8jaOEx--6GLquX9--XOcuW-74lYeDoGY"
+sheetName = "BASE"
+colEnd = 'T'
+startAt = "A1"
+rowStart = 0 # this must to be checked in the original google sheet, 
+
+
+api_link = f"https://us-central1-agetic-ocha.cloudfunctions.net/gSheetTools?sheetId={sheetId}&sheet={sheetName}&colEnd={colEnd}&start={startAt}"
+
+# Call api
+body = requests.get(api_link).text
+
+# Recovering dict from the "data" field from the request
+raw_dict = json.loads(body)["data"]
+
+# Read only the elements from 5 to above, since the first ones are metadata
+data_list = raw_dict["values"][startAt:]
+
+# Filter only the rows that have data
+data_list = [i for i in data_list if len(i) > 0]
+
+# Crear tabla
+df = pd.DataFrame(data_list[rowStart:])
+df.columns = data_list[0]
+
+df.head()
+
+
+```
+
 ### **`POST`** 
 
 Escribir una tabla a google sheets.
@@ -56,8 +93,9 @@ https://us-central1-agetic-ocha.cloudfunctions.net/gSheetTools
 **JSON BODY**
 
 
-Example...
+Examplos:
 
+Cuerpo de la llamada
 ```json
 
 {
@@ -67,6 +105,31 @@ Example...
 	"sheetEndAt": "M",
 	"data": [[7, "1", 8,4,15,6]]
 }
+
+```
+
+Ejemplo utilzando Python
+
+```python
+
+url = 'https://us-central1-agetic-ocha.cloudfunctions.net/gSheetTools'
+
+payload = {
+    "sheedId": sheetId ,
+    "sheetName": sheetName,
+    "sheetStartAt": sheetStartAt ,
+    "sheetEndAt": sheetEndAt,
+    "data": data
+}
+
+x = requests.post(url, 
+                data = json.dumps(payload), 
+                headers = {'Content-type': 'application/json'})
+
+print(x.text)
+
+# Should be `OK`
+
 
 ```
 
